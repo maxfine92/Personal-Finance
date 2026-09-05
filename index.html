@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Учет Бюджета</title>
+  
+  <!-- PWA / Mobile settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2382/2382461.png">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen font-sans p-4 max-w-md mx-auto flex flex-col justify-between">
+
+  <div>
+    <!-- Шапка -->
+    <header class="flex justify-between items-center py-4 border-b border-slate-800">
+      <h1 class="text-xl font-bold tracking-wide">Бюджет</h1>
+      <button onclick="fetchStats()" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300 active:bg-slate-700">🔄 Обновить</button>
+    </header>
+
+    <!-- Карточки Остатков -->
+    <div class="grid grid-cols-2 gap-3 my-6">
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/50">
+        <span class="text-xs text-slate-400 block mb-1">Остаток на неделю</span>
+        <div id="weekBalance" class="text-2xl font-black text-emerald-400">0.00 €</div>
+      </div>
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/50">
+        <span class="text-xs text-slate-400 block mb-1">Остаток на месяц</span>
+        <div id="monthBalance" class="text-2xl font-black text-blue-400">0.00 €</div>
+      </div>
+    </div>
+
+    <!-- Форма добавления траты -->
+    <form id="expenseForm" onsubmit="addExpense(event)" class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/30 space-y-3">
+      <h2 class="text-sm font-semibold text-slate-300">Добавить расход</h2>
+      
+      <div>
+        <input type="number" step="0.01" id="amount" placeholder="Сумма (например 12.50)" required
+               class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:border-emerald-500">
+      </div>
+      
+      <div>
+        <input type="text" id="category" placeholder="Категория / Заметка (супермаркет, кафе...)"
+               class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+      </div>
+
+      <button type="submit" id="submitBtn"
+              class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-slate-950 font-bold py-3 rounded-xl">
+        Записать расход
+      </button>
+    </form>
+
+    <!-- Последние траты -->
+    <div class="mt-6">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Последние операции</h3>
+      <div id="expensesList" class="space-y-2">
+        <div class="text-xs text-slate-500 text-center py-4">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ВСТАВЬТЕ СЮДА ССЫЛКУ ИЗ ШАГА 1
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRb-aaGT0m7oTV_GDY66pc7csuUIYNZx-Fl8kWwIQ60FlL0kBbzKM9mYJQJpWOpyi6/exec';
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        
+        document.getElementById('weekBalance').textContent = Number(data.weekBalance).toFixed(2) + ' €';
+        document.getElementById('monthBalance').textContent = Number(data.monthBalance).toFixed(2) + ' €';
+
+        const listEl = document.getElementById('expensesList');
+        if (data.recentExpenses && data.recentExpenses.length > 0) {
+          listEl.innerHTML = data.recentExpenses.map(item => `
+            <div class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded-xl text-sm border border-slate-800">
+              <div>
+                <div class="font-medium text-slate-200">${item.category || 'Без категории'}</div>
+                <div class="text-[10px] text-slate-500">${item.date}</div>
+              </div>
+              <div class="font-bold text-red-400">-${Number(item.amount).toFixed(2)} €</div>
+            </div>
+          `).join('');
+        } else {
+          listEl.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">Нет записей</div>';
+        }
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+      }
+    }
+
+    async function addExpense(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const amount = document.getElementById('amount').value;
+      const category = document.getElementById('category').value;
+
+      btn.disabled = true;
+      btn.textContent = 'Сохранение...';
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, category })
+        });
+
+        document.getElementById('expenseForm').reset();
+        setTimeout(fetchStats, 1500); // Даем гугл таблице время обновиться
+      } catch (err) {
+        alert('Ошибка при сохранении!');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Записать расход';
+      }
+    }
+
+    fetchStats();
+  </script>
+</body>
+</html>
