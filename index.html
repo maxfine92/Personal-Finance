@@ -16,16 +16,15 @@
 <body class="bg-slate-900 text-white min-h-screen font-sans max-w-md mx-auto flex flex-col justify-between p-4">
 
   <div>
-    <!-- Шапка и Табы -->
     <header class="flex justify-between items-center pb-3 border-b border-slate-800">
-      <div class="flex gap-2">
-        <button id="tabFormBtn" onclick="switchTab('form')" class="text-sm font-bold bg-emerald-500 text-slate-950 px-4 py-1.5 rounded-xl transition">➕ Запись</button>
-        <button id="tabAnalyticsBtn" onclick="switchTab('analytics')" class="text-sm font-bold bg-slate-800 text-slate-400 px-4 py-1.5 rounded-xl transition">📊 Аналитика</button>
+      <div class="flex gap-1.5 overflow-x-auto">
+        <button id="tabFormBtn" onclick="switchTab('form')" class="text-xs font-bold bg-emerald-500 text-slate-950 px-3 py-1.5 rounded-xl transition">➕ Запись</button>
+        <button id="tabAnalyticsBtn" onclick="switchTab('analytics')" class="text-xs font-bold bg-slate-800 text-slate-400 px-3 py-1.5 rounded-xl transition">📊 Аналитика</button>
+        <button id="tabSettingsBtn" onclick="switchTab('settings')" class="text-xs font-bold bg-slate-800 text-slate-400 px-3 py-1.5 rounded-xl transition">⚙️ Настройки</button>
       </div>
       <button onclick="fetchData()" class="text-xs bg-slate-800 p-2 rounded-xl text-slate-300 active:bg-slate-700">🔄</button>
     </header>
 
-    <!-- Остатки -->
     <div class="grid grid-cols-2 gap-3 my-4">
       <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/50">
         <span class="text-[11px] text-slate-400 block mb-0.5">Остаток на неделю</span>
@@ -37,7 +36,6 @@
       </div>
     </div>
 
-    <!-- Вкладка 1: Форма добавления + Операции -->
     <div id="tabFormView" class="space-y-5">
       <form id="expenseForm" onsubmit="addExpense(event)" class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/30 space-y-3">
         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Добавить расход</h2>
@@ -75,7 +73,6 @@
         </button>
       </form>
 
-      <!-- Последние операции -->
       <div>
         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Последние операции</h3>
         <div id="expensesList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -84,7 +81,6 @@
       </div>
     </div>
 
-    <!-- Вкладка 2: Аналитика -->
     <div id="tabAnalyticsView" class="hidden space-y-4">
       <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/30 space-y-3">
         <div class="grid grid-cols-3 gap-2">
@@ -93,6 +89,7 @@
             <select id="chartType" onchange="updateAnalytics()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs">
               <option value="pie">Пай-чарт</option>
               <option value="bar">Столбцы</option>
+              <option value="line">Линейный</option>
             </select>
           </div>
           <div>
@@ -100,6 +97,9 @@
             <select id="groupBy" onchange="updateAnalytics()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs">
               <option value="category">Категории</option>
               <option value="comment">Комментарии</option>
+              <option value="week">По неделям</option>
+              <option value="month">По месяцах</option>
+              <option value="year">По годам</option>
             </select>
           </div>
           <div>
@@ -119,36 +119,105 @@
 
       <div id="analyticsSummary" class="space-y-1.5"></div>
     </div>
+
+    <div id="tabSettingsView" class="hidden space-y-4">
+      <form onsubmit="saveSettings(event)" class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/30 space-y-3">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Настройки лимитов (€)</h2>
+        
+        <div>
+          <label class="text-[10px] text-slate-400 ml-1">Ограничение в неделю (E1)</label>
+          <input type="number" step="0.01" id="settingWeekLimit" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-slate-400 ml-1">Макс. перенос через неделю (E3)</label>
+          <input type="number" step="0.01" id="settingMaxWeekRollover" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-slate-400 ml-1">Ограничение в месяц (I1)</label>
+          <input type="number" step="0.01" id="settingMonthLimit" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-slate-400 ml-1">Макс. перенос в месяц (I3)</label>
+          <input type="number" step="0.01" id="settingMaxMonthRollover" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+        </div>
+
+        <button type="submit" id="saveSettingsBtn"
+                class="w-full bg-blue-500 hover:bg-blue-600 active:scale-95 transition text-white font-bold py-3 rounded-xl mt-2">
+          Сохранить настройки
+        </button>
+      </form>
+
+      <div class="bg-slate-800/30 p-4 rounded-2xl border border-slate-800 text-xs space-y-2">
+        <div class="font-bold text-slate-400">Безопасность</div>
+        <button onclick="resetPin()" class="text-red-400 hover:underline">Сменить сохранённый PIN-код</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // УКАЖИТЕ ВАШ SCRIPT URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRb-aaGT0m7oTV_GDY66pc7csuUIYNZx-Fl8kWwIQ60FlL0kBbzKM9mYJQJpWOpyi6/exec';
+    // ⚠️ УКАЖИТЕ ВАШ SCRIPT URL
+    const SCRIPT_URL = 'YOUR_SCRIPT_URL';
 
-    let globalData = { operations: [], categories: [] };
+    let globalData = { operations: [], categories: [], settings: {} };
     let myChart = null;
 
-    // Установка сегодняшней даты в поле по умолчанию
-    document.getElementById('expenseDate').valueToDate = new Date();
     document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
 
+    function getPin() {
+      let pin = localStorage.getItem('budget_pin');
+      if (!pin) {
+        pin = prompt('Введите PIN-код для доступак приложению:');
+        if (pin) localStorage.setItem('budget_pin', pin);
+      }
+      return pin || '';
+    }
+
+    function resetPin() {
+      localStorage.removeItem('budget_pin');
+      getPin();
+      fetchData();
+    }
+
     async function fetchData() {
+      const pin = getPin();
       try {
-        const res = await fetch(SCRIPT_URL);
-        globalData = await res.json();
+        const res = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);
+        const data = await res.json();
+
+        if (data.status === 'error') {
+          alert('Ошибка доступа: ' + data.message);
+          localStorage.removeItem('budget_pin');
+          return;
+        }
+
+        globalData = data;
 
         document.getElementById('weekBalance').textContent = Number(globalData.weekBalance).toFixed(2) + ' €';
         document.getElementById('monthBalance').textContent = Number(globalData.monthBalance).toFixed(2) + ' €';
 
-        // Заполнение выпадающего списка категорий
+        // Заполнение селекта категорий
         const catSelect = document.getElementById('categorySelect');
         catSelect.innerHTML = globalData.categories.map(c => `<option value="${c}">${c}</option>`).join('');
 
-        // Рендер истории
+        // Заполнение формы настроек
+        if (globalData.settings) {
+          document.getElementById('settingWeekLimit').value = globalData.settings.weekLimit || 0;
+          document.getElementById('settingMaxWeekRollover').value = globalData.settings.maxWeekRollover || 0;
+          document.getElementById('settingMonthLimit').value = globalData.settings.monthLimit || 0;
+          document.getElementById('settingMaxMonthRollover').value = globalData.settings.maxMonthRollover || 0;
+        }
+
         renderHistory();
         updateAnalytics();
       } catch (err) {
-        console.error('Ошибка при загрузке:', err);
+        console.error('Ошибка загрузки:', err);
       }
     }
 
@@ -156,16 +225,38 @@
       const listEl = document.getElementById('expensesList');
       if (globalData.operations && globalData.operations.length > 0) {
         listEl.innerHTML = globalData.operations.map(item => `
-          <div class="flex justify-between items-center bg-slate-800/40 p-3 rounded-xl text-sm border border-slate-800">
-            <div>
-              <div class="font-semibold text-slate-200">${item.category}</div>
-              <div class="text-xs text-slate-400">${item.comment || '—'} <span class="text-[10px] text-slate-500">(${item.date})</span></div>
+          <div class="flex justify-between items-center bg-slate-800/40 p-2.5 rounded-xl text-sm border border-slate-800">
+            <div class="flex items-center gap-2">
+              <button onclick="deleteExpense(${item.rowNum})" title="Удалить"
+                      class="w-6 h-6 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center font-bold text-xs transition">
+                ➖
+              </button>
+              <div>
+                <div class="font-semibold text-slate-200">${item.category}</div>
+                <div class="text-xs text-slate-400">${item.comment || '—'} <span class="text-[10px] text-slate-500">(${item.date})</span></div>
+              </div>
             </div>
             <div class="font-bold text-red-400">-${Number(item.amount).toFixed(2)} €</div>
           </div>
         `).join('');
       } else {
         listEl.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">Нет записей</div>';
+      }
+    }
+
+    async function deleteExpense(rowNum) {
+      if (!confirm('Удалить эту операцию?')) return;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', rowNum, pin: getPin() })
+        });
+        setTimeout(fetchData, 1200);
+      } catch (err) {
+        alert('Ошибка при удалении!');
       }
     }
 
@@ -185,38 +276,74 @@
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date, amount, category, comment })
+          body: JSON.stringify({ date, amount, category, comment, pin: getPin() })
         });
 
         document.getElementById('amount').value = '';
         document.getElementById('comment').value = '';
-        setTimeout(fetchData, 1500);
+        setTimeout(fetchData, 1200);
       } catch (err) {
-        alert('Ошибка при сохранении!');
+        alert('Ошибка сохранения!');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Записать расход';
       }
     }
 
-    function switchTab(tab) {
-      const formView = document.getElementById('tabFormView');
-      const analyticsView = document.getElementById('tabAnalyticsView');
-      const formBtn = document.getElementById('tabFormBtn');
-      const analyticsBtn = document.getElementById('tabAnalyticsBtn');
+    async function saveSettings(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveSettingsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Сохранение...';
 
-      if (tab === 'form') {
-        formView.classList.remove('hidden');
-        analyticsView.classList.add('hidden');
-        formBtn.className = "text-sm font-bold bg-emerald-500 text-slate-950 px-4 py-1.5 rounded-xl transition";
-        analyticsBtn.className = "text-sm font-bold bg-slate-800 text-slate-400 px-4 py-1.5 rounded-xl transition";
-      } else {
-        formView.classList.add('hidden');
-        analyticsView.classList.remove('hidden');
-        analyticsBtn.className = "text-sm font-bold bg-emerald-500 text-slate-950 px-4 py-1.5 rounded-xl transition";
-        formBtn.className = "text-sm font-bold bg-slate-800 text-slate-400 px-4 py-1.5 rounded-xl transition";
-        updateAnalytics();
+      const weekLimit = document.getElementById('settingWeekLimit').value;
+      const maxWeekRollover = document.getElementById('settingMaxWeekRollover').value;
+      const monthLimit = document.getElementById('settingMonthLimit').value;
+      const maxMonthRollover = document.getElementById('settingMaxMonthRollover').value;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'updateSettings',
+            weekLimit, maxWeekRollover, monthLimit, maxMonthRollover,
+            pin: getPin()
+          })
+        });
+        setTimeout(fetchData, 1200);
+      } catch (err) {
+        alert('Ошибка сохранения настроек!');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Сохранить настройки';
       }
+    }
+
+    function switchTab(tab) {
+      const views = {
+        form: document.getElementById('tabFormView'),
+        analytics: document.getElementById('tabAnalyticsView'),
+        settings: document.getElementById('tabSettingsView')
+      };
+      const btns = {
+        form: document.getElementById('tabFormBtn'),
+        analytics: document.getElementById('tabAnalyticsBtn'),
+        settings: document.getElementById('tabSettingsBtn')
+      };
+
+      Object.keys(views).forEach(k => {
+        if (k === tab) {
+          views[k].classList.remove('hidden');
+          btns[k].className = "text-xs font-bold bg-emerald-500 text-slate-950 px-3 py-1.5 rounded-xl transition";
+        } else {
+          views[k].classList.add('hidden');
+          btns[k].className = "text-xs font-bold bg-slate-800 text-slate-400 px-3 py-1.5 rounded-xl transition";
+        }
+      });
+
+      if (tab === 'analytics') updateAnalytics();
     }
 
     function updateAnalytics() {
@@ -226,14 +353,14 @@
       const groupBy = document.getElementById('groupBy').value;
       const period = document.getElementById('periodFilter').value;
 
-      // Фильтрация операций
       let filtered = globalData.operations;
+
+      // Фильтр по периоду
       if (period === 'month') {
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
         filtered = filtered.filter(op => Number(op.month) === currentMonth);
       } else if (period === 'week') {
-        // Простая фильтрация последней недели из записей
         const latestWeek = filtered[0] ? filtered[0].week : null;
         if (latestWeek) filtered = filtered.filter(op => op.week === latestWeek);
       }
@@ -241,14 +368,19 @@
       // Группировка
       const grouped = {};
       filtered.forEach(op => {
-        const key = (groupBy === 'category' ? op.category : op.comment) || 'Без названия';
+        let key = 'Без названия';
+        if (groupBy === 'category') key = op.category || 'Без категории';
+        else if (groupBy === 'comment') key = op.comment || 'Без комментария';
+        else if (groupBy === 'week') key = op.week ? `Неделя ${op.week}` : 'Без недели';
+        else if (groupBy === 'month') key = op.month ? `Месяц ${op.month}` : 'Без месяца';
+        else if (groupBy === 'year') key = op.year ? `Год ${op.year}` : 'Без года';
+
         grouped[key] = (grouped[key] || 0) + Number(op.amount);
       });
 
       const labels = Object.keys(grouped);
       const values = Object.values(grouped);
 
-      // Рендер чарта
       const ctx = document.getElementById('analyticsChart').getContext('2d');
       if (myChart) myChart.destroy();
 
@@ -257,8 +389,11 @@
         data: {
           labels: labels,
           datasets: [{
+            label: 'Траты (€)',
             data: values,
-            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b']
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'],
+            borderColor: '#0f172a',
+            borderWidth: 2
           }]
         },
         options: {
@@ -267,7 +402,6 @@
         }
       });
 
-      // Список с итоговыми суммами
       const summaryEl = document.getElementById('analyticsSummary');
       summaryEl.innerHTML = labels.map((l, i) => `
         <div class="flex justify-between items-center bg-slate-800/30 px-3 py-1.5 rounded-lg text-xs">
